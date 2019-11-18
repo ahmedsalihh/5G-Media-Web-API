@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: vimEmu.js</title>
+    <title>JSDoc: Source: cno.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: vimEmu.js</h1>
+    <h1 class="page-title">Source: cno.js</h1>
 
     
 
@@ -26,31 +26,64 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>var axios = require('axios');
+            <pre class="prettyprint source linenums"><code>var axios = require("axios");
 
 /**
- * @module VimEmu
+ * @module CNO
  */
 
 /**
- * VimEmu Data Center Model
- * @typedef {Object} DataCenter
- * @property {string} internalname
- * @property {array} ext
- * @property {string} n_running_containers
- * @property {string} label
- * @property {string} switch
- * @property {array} vnf_list
- * @property {array} metadata
+ * Training Data model.
+ * @typedef {Object} trainData
+ * @property {string} alpha
+ * @property {string} trafficPattern
+ * @property {string} actorLearningRatio
+ * @property {string} criticLearningRatio
+ * @property {string} linkCapacity
+ * @property {string} rewardFunction
+ * @property {string} uploadFileName
+ * @property {string} parallelAgent
  */
 
 /**
- * Represents a Data Center List.
- * @return {array&lt;DataCenter>} DataCenter List
+ * Represents a starting CNO training.
+ * @param {trainData} trainData - train data model.
+ * @return {string} OK
  */
-exports.listDatacenters = () => {
+
+exports.trainData = trainModel => {
   return new Promise(resolve => {
-    const url = `http://${process.env.VIM_EMU_IP}:${process.env.VIM_EMU_PORT}/restapi/datacenter`;
+    const url = `http://${process.env.CNO_IP}:${process.env.CNO_PORT}/trainData`;
+    axios
+      .post(url, { trainModel })
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a stop CNO training.
+ * @return {string} OK
+ */
+exports.stopTraining = () => {
+  return new Promise(resolve => {
+    const url = `http://${process.env.CNO_IP}:${process.env.CNO_PORT}/shutdown`;
     axios
       .get(url)
       .then(response => {
@@ -64,8 +97,6 @@ exports.listDatacenters = () => {
           switch (error.response.status) {
             case 401:
               resolve(error.response.data);
-            case 403:
-              resolve(error.response.data);
             default:
               resolve(error.response.data);
           }
@@ -77,13 +108,12 @@ exports.listDatacenters = () => {
 };
 
 /**
- * Represents a requested Data Center.
- * @param {string} dc_label - Name of VNF
- * @return {DataCenter} DataCenter
+ * Represents start tenserboard according to CNO training.
+ * @return {string} OK
  */
-exports.getVNFinfo = dc_label => {
+exports.startTensorboard = () => {
   return new Promise(resolve => {
-    const url = `http://${process.env.VIM_EMU_IP}:${process.env.VIM_EMU_PORT}/restapi/datacenter/${dc_label}`;
+    const url = `http://${process.env.CNO_IP}:${process.env.CNO_PORT}/tensorboard`;
     axios
       .get(url)
       .then(response => {
@@ -97,8 +127,6 @@ exports.getVNFinfo = dc_label => {
           switch (error.response.status) {
             case 401:
               resolve(error.response.data);
-            case 403:
-              resolve(error.response.data);
             default:
               resolve(error.response.data);
           }
@@ -110,16 +138,14 @@ exports.getVNFinfo = dc_label => {
 };
 
 /**
- * Represents a requested Data Center.
- * @param {string} dc_label - Name of VNF
- * @param {string} compute_name - Compute Name of VNF
- * @return {string} Deleted
+ * Represents a deploy trained application to MAPE.
+ * @return {string} OK
  */
-exports.deleteVNF = (dc_label, compute_name) => {
+exports.deployMape = () => {
   return new Promise(resolve => {
-    const url = `http://${process.env.VIM_EMU_IP}:${process.env.VIM_EMU_PORT}/restapi/compute/${dc_label}/${compute_name}`;
+    const url = `http://${process.env.CNO_IP}:${process.env.CNO_PORT}/deployMape`;
     axios
-      .delete(url)
+      .get(url)
       .then(response => {
         switch (response.status) {
           case 200:
@@ -130,8 +156,6 @@ exports.deleteVNF = (dc_label, compute_name) => {
         if (error.response) {
           switch (error.response.status) {
             case 401:
-              resolve(error.response.data);
-            case 403:
               resolve(error.response.data);
             default:
               resolve(error.response.data);
