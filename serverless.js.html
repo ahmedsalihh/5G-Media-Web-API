@@ -26,10 +26,10 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>var axios = require('axios');
-var https = require('https');
+            <pre class="prettyprint source linenums"><code>var axios = require("axios");
+var https = require("https");
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 httpsAgent = new https.Agent({
   rejectUnauthorized: false
@@ -83,13 +83,7 @@ exports.getActions = (namespace, limit, skip, token) => {
  * @param {string} token - faas access token.
  * @return {ActionResponse} Action Model
  */
-exports.getSingleAction = (
-  namespace,
-  actionName,
-  code,
-  packageName,
-  token
-) => {
+exports.getSingleAction = (namespace, actionName, code, packageName, token) => {
   return new Promise(resolve => {
     const params = { code };
     const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/actions/${packageName}/${actionName}`;
@@ -200,6 +194,336 @@ exports.deleteAction = (namespace, actionName, packageName, token) => {
       });
   });
 };
+
+/**
+ * Path Name model.
+ * @typedef {Object} PathName
+ * @property {string} path
+ * @property {string} name
+ */
+
+/**
+ * Rules response model.
+ * @typedef {Object} Rule
+ * @property {string} namespace
+ * @property {string} name
+ * @property {string} version
+ * @property {boolean} publish
+ * @property {array&lt;string>} annotations
+ * @property {string} status
+ * @property {PathName} trigger
+ * @property {PathName} action
+ */
+
+/**
+ * Represents a requested Faas Rules.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} limit - Number of entities to include in the result (0-200). The default limit is 30. A value of 0 sets the limit to the maximum.
+ * @param {boolean} skip - Number of entities to skip in the result.
+ * @param {string} token - faas access token.
+ * @return {array&lt;Rule>} Rule
+ */
+exports.getRules = (namespace, limit, skip, token) => {
+  return new Promise(resolve => {
+    const params = { limit, skip };
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/rules`;
+    axios
+      .get(url, { params })
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a requested Faas Rule.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} ruleName - Name of rule to fetch
+ * @return {Rule} Rule
+ */
+exports.getSingleRule = (namespace, ruleName, token) => {
+  return new Promise(resolve => {
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/rules/${ruleName}`;
+    axios
+      .get(url)
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a create new Faas Rule.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} ruleName - Name of rule to update
+ * @param {string} overwrite - Overwrite item if it exists. Default is false.
+ * @param {Rule} rule - The rule being updated
+ * @param {string} token - faas access token.
+ * @return {Rule} Rule
+ */
+exports.createRule = (namespace, ruleName, overwrite, rule, token) => {
+  return new Promise(resolve => {
+    const params = { overwrite };
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/rules/${ruleName}`;
+    axios
+      .put(url, { params }, { ...rule })
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            case 409:
+              resolve(error.response.data);
+            case 413:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a delete Faas Rule.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} ruleName - Name of rule to delete
+ * @return {Rule} Rule
+ */
+exports.deleteRule = (namespace, ruleName, token) => {
+  return new Promise(resolve => {
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/rules/${ruleName}`;
+    axios
+      .delete(url)
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Trigger Limits model.
+ * @typedef {Object} TriggerLimits
+ * @property {string} description
+ */
+
+/**
+ * Trigger response model.
+ * @typedef {Object} Trigger
+ * @property {string} namespace
+ * @property {string} name
+ * @property {string} version
+ * @property {boolean} publish
+ * @property {array&lt;string>} annotations
+ * @property {array&lt;string>} parameters
+ * @property {TriggerLimits} trigger
+ * @property {Rule} rules
+ * @property {integer} updated
+ */
+
+/**
+ * Represents a requested Faas Triggers.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} limit - Number of entities to include in the result (0-200). The default limit is 30. A value of 0 sets the limit to the maximum.
+ * @param {boolean} skip - Number of entities to skip in the result.
+ * @param {string} token - faas access token.
+ * @return {array&lt;Trigger>} Trigger
+ */
+exports.getTriggers = (namespace, limit, skip, token) => {
+  return new Promise(resolve => {
+    const params = { limit, skip };
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/triggers`;
+    axios
+      .get(url, { params })
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a requested Faas Trigger.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} triggerName - Name of trigger to fetch
+ * @return {Trigger} Trigger
+ */
+exports.getSingleTrigger = (namespace, triggerName, token) => {
+  return new Promise(resolve => {
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/triggers/${triggerName}`;
+    axios
+      .get(url)
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a create new Faas Trigger.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} triggerName - Name of trigger to update
+ * @param {string} overwrite - Overwrite item if it exists. Default is false.
+ * @param {Trigger} trigger - The trigger being updated
+ * @param {string} token - faas access token.
+ * @return {Trigger} Trigger
+ */
+exports.createTrigger = (namespace, triggerName, overwrite, trigger, token) => {
+  return new Promise(resolve => {
+    const params = { overwrite };
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/triggers/${triggerName}`;
+    axios
+      .put(url, { params }, { ...trigger })
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            case 409:
+              resolve(error.response.data);
+            case 413:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
+
+/**
+ * Represents a delete Faas Trigger.
+ * @param {string} namespace - The entity namespace.
+ * @param {int} triggerName - Name of trigger to delete
+ * @return {Trigger} Trigger
+ */
+exports.deleteTrigger = (namespace, triggerName, token) => {
+  return new Promise(resolve => {
+    const url = `https://${token}@${process.env.SERVERLESS_IP}:${process.env.SERVERLESS_PORT}/api/v1/namespaces/${namespace}/triggers/${triggerName}`;
+    axios
+      .delete(url)
+      .then(response => {
+        switch (response.status) {
+          case 200:
+            resolve(response.data);
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              resolve(error.response.data);
+            case 404:
+              resolve(error.response.data);
+            default:
+              resolve(error.response.data);
+          }
+        } else {
+          resolve(error);
+        }
+      });
+  });
+};
 </code></pre>
         </article>
     </section>
@@ -210,13 +534,13 @@ exports.deleteAction = (namespace, actionName, packageName, token) => {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Catalogue.html">Catalogue</a></li><li><a href="module-CNO.html">CNO</a></li><li><a href="module-Faas.html">Faas</a></li><li><a href="module-Monitoring.html">Monitoring</a></li><li><a href="module-OSM.html">OSM</a></li><li><a href="module-VimEmu.html">VimEmu</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AAA.html">AAA</a></li><li><a href="module-Catalogue.html">Catalogue</a></li><li><a href="module-CNO.html">CNO</a></li><li><a href="module-Faas.html">Faas</a></li><li><a href="module-Monitoring.html">Monitoring</a></li><li><a href="module-OSM.html">OSM</a></li><li><a href="module-VimEmu.html">VimEmu</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Nov 18 2019 15:58:18 GMT+0300 (GMT+03:00)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 11:53:48 GMT+0300 (GMT+03:00)
 </footer>
 
 <script> prettyPrint(); </script>
